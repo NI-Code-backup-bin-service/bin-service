@@ -1,0 +1,110 @@
+/*
+ * Copyright (c) 2018 Network International.
+ * The copyright notice above does not evidence any
+ * actual or intended publication of such source code.
+ */
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+    id "org.springframework.boot" version "2.0.1.RELEASE"
+}
+
+sourceSets.all {
+    configurations.getByName(runtimeClasspathConfigurationName) {
+        attributes.attribute(Attribute.of("org.gradle.jvm.environment", String), "standard-jvm")
+    }
+    configurations.getByName(compileClasspathConfigurationName) {
+        attributes.attribute(Attribute.of("org.gradle.jvm.environment", String), "standard-jvm")
+    }
+}
+
+apply plugin: 'org.springframework.boot'
+
+springBoot {
+    mainClassName = 'ae.network.gateway.bin.Application'
+}
+
+bootJar {
+    manifest {
+        attributes(
+                "Spring-Boot-Lib": "/BOOT-INF/lib/",
+                "Spring-Boot-Classes": "/BOOT-INF/classes/"
+        )
+    }
+}
+
+bootRun {
+    if ( project.hasProperty('jvmArgs') ) {
+        jvmArgs = (project.jvmArgs.split("\\s+") as List)
+
+    }
+}
+
+
+dependencies {
+    implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-web') {
+        exclude module: 'spring-boot-starter-tomcat'
+    }
+    implementation group: 'org.glassfish.jersey.containers', name: 'jersey-container-servlet'
+
+    implementation group: 'io.swagger.core.v3', name: 'swagger-models'
+    implementation group: 'io.swagger.core.v3', name: 'swagger-integration'
+    implementation group: 'io.swagger.core.v3', name: 'swagger-jaxrs2'
+
+    implementation group: 'io.micrometer', name: 'micrometer-jersey2'
+    implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus'
+
+    implementation group: 'ae.network.commons.monitoring', name: 'spring-monitoring', version: commonsMonitoringVersion
+
+    implementation group: 'org.hibernate.validator', name: 'hibernate-validator'
+
+    runtimeOnly group: 'org.springframework.boot', name: 'spring-boot-starter-logging'
+    runtimeOnly group: 'org.springframework.boot', name: 'spring-boot-starter-jetty'
+    runtimeOnly group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+
+    implementation group: 'javax.servlet', name: 'javax.servlet-api'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
+
+    implementation project(":bin-service-rest")
+    implementation project(":bin-service-persistence")
+    runtimeOnly project(":bin-service-domain")
+
+    testImplementation group: 'info.cukes', name: 'cucumber-picocontainer'
+    testImplementation group: 'info.cukes', name: 'cucumber-junit'
+
+    testImplementation group: 'org.glassfish.jersey.core', name: 'jersey-client'
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-devtools'
+
+    testImplementation group: 'com.jayway.jsonpath', name: 'json-path'
+}
+
+ext {
+    buildDate = new Date().format('yyyy-MM-dd HH:mm.ss')
+}
+
+processResources {
+    filter ReplaceTokens, tokens: [
+            "application.version" : project.version,
+            "application.name": rootProject.name,
+            "application.buildDate" : buildDate
+    ]
+}
+
+jar {
+    manifest {
+        attributes(
+                "Implementation-Title": rootProject.name,
+                "Implementation-Version": version,
+        )
+    }
+}
+
+test {
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+apply plugin: 'maven-publish'
+apply from: "../gradle/reports.gradle"

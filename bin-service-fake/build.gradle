@@ -1,0 +1,69 @@
+/*
+ * Copyright (c) 2018 Network International.
+ * The copyright notice above does not evidence any
+ * actual or intended publication of such source code.
+ */
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+    id "org.springframework.boot" version "2.0.1.RELEASE"
+}
+
+sourceSets.all {
+    configurations.getByName(runtimeClasspathConfigurationName) {
+        attributes.attribute(Attribute.of("org.gradle.jvm.environment", String), "standard-jvm")
+    }
+    configurations.getByName(compileClasspathConfigurationName) {
+        attributes.attribute(Attribute.of("org.gradle.jvm.environment", String), "standard-jvm")
+    }
+}
+
+springBoot {
+    mainClassName = 'ae.network.gateway.bin.fake.FakeBinService'
+}
+
+bootJar {
+    launchScript()
+    classifier = 'boot'
+}
+
+dependencies {
+    implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-web') {
+        exclude module: 'spring-boot-starter-tomcat'
+    }
+
+    implementation group: 'org.glassfish.jersey.containers', name: 'jersey-container-servlet'
+    runtimeOnly group: 'org.springframework.boot', name: 'spring-boot-starter-logging'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-jetty'
+    implementation group: 'org.mockito', name: 'mockito-core'
+    api group: 'ae.network.commons.monitoring', name: 'fake-actuator', version: commonsMonitoringVersion
+
+    api project(":bin-service-rest")
+}
+
+ext {
+    buildDate = new Date().format('yyyy-MM-dd HH:mm.ss')
+}
+
+processResources {
+    filter ReplaceTokens, tokens: [
+            "application.version" : version,
+            "application.name": project.name,
+            "application.buildDate" : buildDate
+    ]
+}
+
+jar {
+    enabled = true
+    manifest {
+        attributes(
+                "Implementation-Title": project.name,
+                "Implementation-Version": version,
+        )
+    }
+}
+
+apply from: '../gradle/publish.gradle'
+
+

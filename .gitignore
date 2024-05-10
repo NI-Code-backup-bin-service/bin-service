@@ -1,0 +1,24 @@
+# Editor
+.idea
+*.iml
+*.ipr
+*.iws
+
+#Build
+build
+.gradle
+*.class
+out
+.gradle_home/
+tmp
+.DS_Store
+.local
+
+# Java
+*/build
+*/bin
+*/.classpath
+*/.project
+*/.settings
+.project
+.settings

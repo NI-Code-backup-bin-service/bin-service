@@ -1,0 +1,101 @@
+/*
+ * Copyright (c) 2018 Network International.
+ * The copyright notice above does not evidence any
+ * actual or intended publication of such source code.
+ */
+
+allprojects {
+    apply plugin: 'jacoco'
+
+    jacoco {
+        toolVersion = jacocoVersion
+    }
+}
+
+subprojects {
+    jacocoTestReport {
+        additionalSourceDirs.setFrom files(sourceSets.main.allSource.srcDirs)
+        sourceDirectories.setFrom files(sourceSets.main.allSource.srcDirs)
+        classDirectories.setFrom files(sourceSets.main.output)
+        reports {
+            html.enabled = true
+            xml.enabled = true
+            csv.enabled = false
+        }
+    }
+}
+
+task jacocoRootReport(type: JacocoReport) {
+    dependsOn = subprojects.test
+
+    additionalSourceDirs.from = subprojects.sourceSets.main.allSource.srcDirs
+    sourceDirectories.from = subprojects.sourceSets.main.allSource.srcDirs
+    classDirectories.from = subprojects.sourceSets.main.output
+    executionData.from = subprojects.jacocoTestReport.executionData
+
+    reports {
+        html.enabled = true
+        xml.enabled = true
+        csv.enabled = false
+    }
+}
+
+task jacocoCheck(type: JacocoCoverageVerification) {
+    dependsOn tasks.jacocoRootReport
+
+    additionalSourceDirs.from = subprojects.sourceSets.main.allSource.srcDirs
+    sourceDirectories.from = subprojects.sourceSets.main.allSource.srcDirs
+    classDirectories.from = subprojects.sourceSets.main.output
+    executionData.from = subprojects.jacocoTestReport.executionData
+
+    violationRules {
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = "LINE"
+                value = 'COVEREDRATIO'
+                minimum = new BigDecimal(lineCoverageThreshold)
+            }
+        }
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = "INSTRUCTION"
+                value = 'COVEREDRATIO'
+                minimum = new BigDecimal(instructionCoverageThreshold)
+            }
+        }
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = "BRANCH"
+                value = 'COVEREDRATIO'
+                minimum = new BigDecimal(branchCoverageThreshold)
+            }
+        }
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = "METHOD"
+                value = 'COVEREDRATIO'
+                minimum = new BigDecimal(methodCoverageThreshold)
+            }
+        }
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = "CLASS"
+                value = 'COVEREDRATIO'
+                minimum = new BigDecimal(classCoverageThreshold)
+            }
+        }
+    }
+}
+
+task build {
+    dependsOn jacocoCheck
+}
+
+task clean(type: Delete) {
+    delete "$rootDir/build"
+}

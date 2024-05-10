@@ -1,0 +1,21 @@
+dependencies {
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
+    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-afterburner'
+
+    api group: 'ae.network.commons', name: 'error-mappers', version: commonsVersion
+    api group: 'ae.network.commons', name: 'errors', version: commonsVersion
+    api group: 'ae.network.commons', name: 'entities', version: commonsVersion
+    api group: 'javax.validation', name: 'validation-api'
+    implementation group: 'org.hibernate.validator', name: 'hibernate-validator'
+}
+
+sourceSets.all {
+    configurations.getByName(runtimeClasspathConfigurationName) {
+        attributes.attribute(Attribute.of("org.gradle.jvm.environment", String), "standard-jvm")
+    }
+    configurations.getByName(compileClasspathConfigurationName) {
+        attributes.attribute(Attribute.of("org.gradle.jvm.environment", String), "standard-jvm")
+    }
+}
+
+apply from: "../gradle/publish.gradle"

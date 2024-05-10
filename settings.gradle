@@ -1,0 +1,12 @@
+/*
+ * Copyright (c) 2018 Network International.
+ * The copyright notice above does not evidence any
+ * actual or intended publication of such source code.
+ */
+
+rootProject.name = 'bin-service'
+include 'bin-service-domain'
+include 'bin-service-app'
+include 'bin-service-rest'
+include 'bin-service-persistence'
+include 'bin-service-fake'

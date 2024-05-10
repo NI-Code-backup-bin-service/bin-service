@@ -1,0 +1,3 @@
+server.port: 0
+server.servlet.context-path: /
+spring.banner.location: classpath:/fake-bin-service-banner.txt

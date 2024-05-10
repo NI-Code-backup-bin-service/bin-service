@@ -1,0 +1,54 @@
+def appName = 'bin-service'
+
+multibranchPipelineJob("bin-service-build") {
+  branchSources {
+    branchSource {
+      source {
+        git {
+          remote("git@bitbucket.org:network-international/${appName}.git")
+
+          traits {
+            submoduleOptionTrait {
+              extension {
+                disableSubmodules(false)
+                recursiveSubmodules(true)
+                trackingSubmodules(false)
+                reference(null)
+                timeout(null)
+                parentCredentials(true)
+              }
+            }
+
+            cloneOptionTrait {
+              extension {
+                shallow(false)
+                noTags(false)
+                reference(null)
+                depth(0)
+                honorRefspec(false)
+                timeout(10)
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  orphanedItemStrategy {
+      discardOldItems {
+          numToKeep(0)
+      }
+  }
+
+  triggers {
+    periodicFolderTrigger {
+      interval("2m")
+    }
+  }
+
+  configure {
+    def traits = it / sources / data / 'jenkins.branch.BranchSource' / source / traits
+    traits << 'jenkins.plugins.git.traits.BranchDiscoveryTrait' {}
+  }
+}

@@ -1,0 +1,134 @@
+/*
+ * Copyright (c) 2018 Network International.
+ * The copyright notice above does not evidence any
+ * actual or intended publication of such source code.
+ */
+
+import se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask
+
+buildscript {
+    repositories {
+        maven {
+            url = mavenUrl
+        }
+        maven {
+            url = "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "gradle.plugin.se.bjurr.gitchangelog:git-changelog-gradle-plugin:1.55"
+    }
+}
+
+def gitVersion = "git -C ${rootDir} describe --tags --dirty=.dirty".execute().text.trim()
+
+allprojects {
+    buildscript {
+        repositories {
+            maven {
+                url = mavenUrl
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url = mavenUrl
+        }
+    }
+
+    if (version == 'unspecified') {
+        version = gitVersion
+    }
+
+    println("Project: " + project.name + "; Version: " + version)
+}
+
+apply plugin: 'idea'
+
+idea {
+    project {
+        languageLevel = javaVersion
+    }
+}
+
+ext['buildDate'] = new Date().format('yyyy-MM-dd HH:mm.ss')
+
+subprojects {
+
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+
+    dependencies {
+        implementation enforcedPlatform('ae.network.digital.platform:bom:5.0.19') {
+            exclude module: 'spring-boot-starter-tomcat'
+        }
+
+        implementation(group: 'com.google.guava', name: 'guava') {
+            transitive = false
+        }
+
+        implementation group: 'javax.inject', name: 'javax.inject'
+        implementation group: 'org.slf4j', name: 'slf4j-api'
+        implementation group: 'javax.validation', name: 'validation-api'
+
+        testImplementation group: 'junit', name: 'junit'
+        testImplementation group: 'com.jayway.jsonpath', name: 'json-path-assert'
+        testImplementation group: 'com.jayway.jsonpath', name: 'json-path'
+        testImplementation group: 'org.hamcrest', name: 'hamcrest-core'
+        testImplementation group: 'org.mockito', name: 'mockito-core'
+        testImplementation group: 'org.assertj', name: 'assertj-core'
+        testImplementation group: 'org.slf4j', name: 'jul-to-slf4j'
+
+        runtimeOnly group: 'net.logstash.logback', name: 'logstash-logback-encoder'
+        runtimeOnly group: 'ch.qos.logback', name: 'logback-classic'
+
+        api group: 'ae.network.commons', name: 'logging', version: commonsVersion
+    }
+
+    test {
+        maxHeapSize = "2048m"
+        testLogging {
+            events "passed", "skipped", "failed"
+        }
+    }
+}
+
+configure(subprojects - project('bin-service-app')) {
+    project(":bin-service-app").test.dependsOn build
+}
+
+apply from: 'gradle/jacoco.gradle'
+apply from: 'gradle/checkstyle.gradle'
+
+subprojects {
+    task allDeps(type: DependencyReportTask) {}
+}
+
+apply plugin: "se.bjurr.gitchangelog.git-changelog-gradle-plugin"
+apply plugin: 'maven-publish'
+
+task("changelog", type: GitChangelogTask) {
+    file = new File("$buildDir/CHANGELOG.md")
+    templateContent = file('changelog.mustache').getText('UTF-8');
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact source: changelog.file, classifier: "CHANGELOG", builtBy: changelog
+        }
+    }
+    repositories {
+        maven {
+            url mavenPublishUrl
+            credentials {
+                username mavenUsername
+                password mavenPassword
+            }
+        }
+    }
+}

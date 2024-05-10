@@ -1,0 +1,59 @@
+/*
+ * Copyright (c) 2018 Network International.
+ * The copyright notice above does not evidence any
+ * actual or intended publication of such source code.
+ */
+
+task reportDependencies {
+    doLast {
+        def dependenciesSorted = project.configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts.collect {
+            "${it.moduleVersion}"
+        }.sort()
+
+        File reports = new File("$projectDir/build/reports/")
+        File deps = new File(reports, 'dependencies.txt')
+        reports.mkdirs()
+
+        deps.withPrintWriter { out ->
+            dependenciesSorted.each {
+                out.println it
+                println it
+            }
+        }
+    }
+}
+
+apply plugin: 'project-report'
+
+dependencyReport {
+    configurations = [project.configurations.runtimeClasspath]
+}
+
+task dependenciesZip(type: Zip) {
+    dependsOn(reportDependencies, dependencyReport)
+    from ("$projectDir/build/reports/") {
+        into 'reports'
+    }
+    baseName = 'dependencies'
+}
+
+artifacts {
+    archives dependenciesZip
+}
+
+publishing {
+    publications {
+        create('zip', MavenPublication) {
+            artifact dependenciesZip
+        }
+    }
+    repositories {
+        maven {
+            url mavenPublishUrl
+            credentials {
+                username mavenUsername
+                password mavenPassword
+            }
+        }
+    }
+}

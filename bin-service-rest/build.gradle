@@ -1,0 +1,31 @@
+dependencies {
+    implementation group: 'javax.servlet', name: 'javax.servlet-api'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
+    implementation group: 'jakarta.ws.rs', name: 'jakarta.ws.rs-api'
+
+    runtimeOnly group: 'com.fasterxml.jackson.jaxrs', name: 'jackson-jaxrs-json-provider'
+    runtimeOnly group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson'
+
+    implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310'
+    implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-afterburner'
+    implementation group: 'org.glassfish.jersey.core', name: 'jersey-server'
+
+
+    api project(":bin-service-domain")
+    runtimeOnly group: 'org.glassfish.jersey.inject', name: 'jersey-hk2'
+
+    testImplementation group: 'org.glassfish.jersey.test-framework.providers', name: 'jersey-test-framework-provider-inmemory'
+
+    testRuntimeOnly group: 'org.slf4j', name: 'jul-to-slf4j'
+}
+
+sourceSets.all {
+    configurations.getByName(runtimeClasspathConfigurationName) {
+        attributes.attribute(Attribute.of("org.gradle.jvm.environment", String), "standard-jvm")
+    }
+    configurations.getByName(compileClasspathConfigurationName) {
+        attributes.attribute(Attribute.of("org.gradle.jvm.environment", String), "standard-jvm")
+    }
+}
+
+apply from: '../gradle/publish.gradle'

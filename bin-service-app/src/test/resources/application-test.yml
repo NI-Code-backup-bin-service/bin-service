@@ -1,0 +1,24 @@
+server.port: 0
+
+spring:
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+
+test-bin-info:
+  testBins:
+    - bin: 520424
+      cardBrand: MASTERCARD
+      issuingOrg: MASTERCARD - MEMBER TEST FACILITY
+      cardType: CREDIT
+      cardCategory: ACQUIRER ONLY
+      issuingCountryIsoName: UNITED STATES
+      issuingCountry: US
+      issuingCountryIsoA3Code: USA
+      issuingCountryCode: 840
+      issuingOrganizationWebsite: HTTPS://WWW.MASTERCARD.US/
+      issuingOrganizationPhoneNumber: 1-800-307-7309
+      cardDesignation: PERSONAL
+
+bin-config:
+  includeMadaSchemeBins: false

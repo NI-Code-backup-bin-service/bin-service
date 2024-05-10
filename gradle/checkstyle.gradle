@@ -1,0 +1,32 @@
+/*
+ * Copyright (c) 2018 Network International.
+ * The copyright notice above does not evidence any
+ * actual or intended publication of such source code.
+ */
+
+subprojects {
+
+    apply plugin: 'checkstyle'
+
+    checkstyle {
+        toolVersion = checkstyleVersion
+        ignoreFailures = false
+
+        checkstyleMain {
+            configFile = file("$rootDir/config/checkstyle/checkstyle.xml")
+        }
+
+        checkstyleTest {
+            configFile = file("$rootDir/config/checkstyle/checkstyleTest.xml")
+        }
+    }
+
+    tasks.withType(Checkstyle) {
+        reports {
+            xml.enabled true
+            html.enabled true
+//            html.stylesheet resources.text.fromFile("$rootDir/config/checkstyle/xsl/checkstyle-noframes-sorted.xsl")
+        }
+    }
+}
+
